@@ -1,8 +1,12 @@
-import type { Application } from 'pixi.js';
-import { Assets, Container, Sprite, Text } from 'pixi.js';
+import type { Application, Sprite } from 'pixi.js';
 import { gsap } from 'gsap';
 import { Scene } from '../core/Scene';
 import type { AppManager } from '../core/AppManager';
+import { CardStackLogic } from '../logic/aceOfShadows/CardStackLogic';
+import {
+  CardSprite,
+  CardStackView,
+} from '../views/aceOfShadows/CardStackView';
 
 const STACK_COUNT: number = 4;
 const CARDS_PER_STACK: number = 36;
@@ -10,7 +14,7 @@ const CARD_SCALE: number = 0.3;
 const CARD_Y_OFFSET: number = 3;
 const STACK_HORIZONTAL_MARGIN_RATIO: number = 0.2;
 
-const LABEL_FONT_SIZE: number = 18;
+const LABEL_FONT_SIZE: number = 50;
 const LABEL_FILL_COLOR: number = 0xffffff;
 const LABEL_VERTICAL_OFFSET: number = 30;
 
@@ -30,26 +34,21 @@ const CARD_ALIASES: string[] = [
   'ace-spades',
 ];
 
-type CardSprite = Sprite;
-
-interface CardStack {
-  container: Container;
-  cards: CardSprite[];
-  label: Text;
-}
-
 export class AceOfShadowsScene extends Scene {
-  private readonly stacks: CardStack[] = [];
+  private readonly logic: CardStackLogic;
+  private readonly stacks: CardStackView[] = [];
 
   private isAnimating = false;
 
   constructor(app: Application, private readonly appManager: AppManager) {
     super(app);
 
+    this.logic = new CardStackLogic(STACK_COUNT, CARDS_PER_STACK);
     this.root.sortableChildren = true;
     this.createStacks();
     this.layoutStacks();
     this.animateRandomTopCardMove();
+    this.onResize();
   }
 
   override onResize(): void {
@@ -69,58 +68,32 @@ export class AceOfShadowsScene extends Scene {
 
   private createStacks(): void {
     for (let i = 0; i < STACK_COUNT; i += 1) {
-      const stackContainer = new Container();
-      stackContainer.zIndex = i;
-      const cards: CardSprite[] = [];
-
-      for (let j = 0; j < CARDS_PER_STACK; j += 1) {
-        const alias =
-          CARD_ALIASES[Math.floor(Math.random() * CARD_ALIASES.length)];
-        const texture = Assets.get(alias);
-        const card = new Sprite(texture);
-        card.anchor.set(0.5);
-        card.scale.set(CARD_SCALE);
-
-        stackContainer.addChild(card);
-        cards.push(card);
-      }
-
-      const label = new Text({
-        text: String(cards.length),
-        style: {
-          fill: LABEL_FILL_COLOR,
-          fontSize: LABEL_FONT_SIZE,
-          fontWeight: 'bold',
-        },
+      const stackView = new CardStackView({
+        cardsPerStack: CARDS_PER_STACK,
+        cardScale: CARD_SCALE,
+        cardYOffset: CARD_Y_OFFSET,
+        labelFontSize: LABEL_FONT_SIZE,
+        labelFillColor: LABEL_FILL_COLOR,
+        labelVerticalOffset: LABEL_VERTICAL_OFFSET,
+        cardAliases: CARD_ALIASES,
       });
-      label.anchor.set(0.5, 1);
-      stackContainer.addChild(label);
-      label.y = cards[0].y;////-cards[0].height/2 - cards.length * CARD_Y_OFFSET;
-      console.log('label.y', label.y);
 
-      this.stacks.push({ container: stackContainer, cards, label });
-      // SO CARDS[0] is the bottom most card in the stack, and CARDS[CARDS.length - 1] is the top most card in the stack
-      this.root.addChild(stackContainer);
+      stackView.zIndex = i;
+
+      this.stacks.push(stackView);
+      this.root.addChild(stackView);
     }
   }
 
   private layoutStacks(): void {
-    const { width, height } = { width: 1920, height: 1080 };
+    const { width, height } = { width: 1920, height: 1080 }; //Keeping it same size just scaling down the scene for portrait
     const baselineY = this.getBaselineY(height);
 
-    this.stacks.forEach((stack, stackIndex) => {
+    this.stacks.forEach((stackView, stackIndex) => {
       const x = this.getStackCenterX(stackIndex, width);
 
-      // cards[0] is bottom-most at baseline, higher indices stack upwards
-      stack.cards.forEach((card, depth) => {
-        card.x = x;
-        card.y = baselineY + depth * CARD_Y_OFFSET;
-      });
-
-      stack.label.x = x;
-      stack.label.y = stack.cards[0].y - stack.cards[0].height/2 - LABEL_VERTICAL_OFFSET;
-
-      this.updateStackLabel(stack);
+      stackView.layout(x, baselineY);
+      this.updateStackLabelForIndex(stackIndex);
     });
   }
 
@@ -128,46 +101,35 @@ export class AceOfShadowsScene extends Scene {
     if (this.isAnimating) return;
     if (this.stacks.length < 2) return;
 
-    const nonEmptySourceIndices = this.stacks
-      .map((stack, index) => ({ stack, index }))
-      .filter(({ stack }) => stack.cards.length > 0)
-      .map(({ index }) => index);
+    const move = this.logic.chooseRandomMove();
+    if (!move) return;
 
-    if (nonEmptySourceIndices.length < 1) return;
-
-    const sourceIndex =
-      nonEmptySourceIndices[
-        Math.floor(Math.random() * nonEmptySourceIndices.length)
-      ];
-
-    let targetIndex = sourceIndex;
-    while (targetIndex === sourceIndex) {
-      targetIndex = Math.floor(Math.random() * this.stacks.length);
-    }
-    this.animateTopCardBetweenStacks(sourceIndex, targetIndex);
+    this.animateTopCardBetweenStacks(move.sourceIndex, move.targetIndex);
   }
 
   private animateTopCardBetweenStacks(
     sourceIndex: number,
     targetIndex: number,
   ): void {
-    const sourceStack = this.stacks[sourceIndex];
-    const targetStack = this.stacks[targetIndex];
+    const sourceStackView = this.stacks[sourceIndex];
+    const targetStackView = this.stacks[targetIndex];
 
-    if (!sourceStack || !targetStack) return;
+    if (!sourceStackView || !targetStackView) return;
 
-    this.raiseStackToFront(sourceStack); //Make z-index of source stack the highest so we can animate from top to top
+    this.raiseStackToFront(sourceStackView);
 
-    const movingCard = this.popTopCard(sourceStack); //Remove top most card from source stack
+    const movingCard = sourceStackView.popTopCard();
     if (!movingCard) return;
 
     this.isAnimating = true;
 
-    const { width, height } = { width: 1920, height: 1080 };
+    const { width, height } = { width: 1920, height: 1080 }; //Keeping it same size just scaling down the scene for portrait
     const targetX = this.getStackCenterX(targetIndex, width);
-    const targetY = this.getNextCardYForStack(targetStack, height);
-    targetStack.cards.push(movingCard);
-    this.updateStackLabel(sourceStack);
+    const targetY = this.getNextCardYForStack(targetStackView, height);
+
+    targetStackView.pushCard(movingCard);
+    this.logic.moveTopCard(sourceIndex, targetIndex);
+    this.updateStackLabelForIndex(sourceIndex);
 
     gsap.to(movingCard, {
       x: targetX,
@@ -175,9 +137,9 @@ export class AceOfShadowsScene extends Scene {
       duration: CARD_MOVE_DURATION_SECONDS,
       ease: 'power2.inOut',
       onComplete: () => {
-        targetStack.container.addChild(movingCard);
+        targetStackView.addChild(movingCard);
         this.bringCardToFront(movingCard);
-        this.updateStackLabel(targetStack);
+        this.updateStackLabelForIndex(targetIndex);
         this.isAnimating = false;
         setTimeout(() => {
           this.animateRandomTopCardMove();
@@ -186,30 +148,23 @@ export class AceOfShadowsScene extends Scene {
     });
   }
 
-  private popTopCard(stack: CardStack): CardSprite | null {
-    if (stack.cards.length === 0) return null;
-    const card = stack.cards.pop() ?? null;
-    if (!card) return null;
-    return card;
-  }
-
-  private raiseStackToFront(stack: CardStack): void {
+  private raiseStackToFront(stack: CardStackView): void {
     // Recompute zIndex for all stacks so they stay in the range [0, STACK_COUNT - 1].
     const ordered = [...this.stacks].sort(
-      (a, b) => a.container.zIndex - b.container.zIndex,
+      (a, b) => a.zIndex - b.zIndex,
     );
 
     const withoutTarget = ordered.filter((s) => s !== stack);
     const newOrder = [...withoutTarget, stack];
 
     newOrder.forEach((s, index) => {
-      s.container.zIndex = index;
+      s.zIndex = index;
     });
 
     this.root.sortChildren();
   }
 
-  private bringCardToFront(card: CardSprite): void {
+  private bringCardToFront(card: CardSprite | Sprite): void {
     const parent = card.parent;
     if (!parent) return;
     parent.setChildIndex(card, parent.children.length - 1);
@@ -227,7 +182,7 @@ export class AceOfShadowsScene extends Scene {
     );
   }
 
-  private getNextCardYForStack(stack: CardStack, height: number): number {
+  private getNextCardYForStack(stack: CardStackView, height: number): number {
     const baselineY = this.getBaselineY(height);
     const nextDepth = stack.cards.length;
     // New top card goes one step above current top (higher index)
@@ -242,10 +197,12 @@ export class AceOfShadowsScene extends Scene {
     return centerY + maxStackHeight / 2;
   }
 
-  private updateStackLabel(
-    stack: CardStack,
-  ): void {
-    stack.label.text = String(stack.cards.length);
+  private updateStackLabelForIndex(stackIndex: number): void {
+    const stackView = this.stacks[stackIndex];
+    if (!stackView) return;
+
+    const cardCount = this.logic.getCardCount(stackIndex);
+    stackView.updateLabel(cardCount);
   }
 }
 
