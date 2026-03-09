@@ -19,5 +19,8 @@ export abstract class Scene {
   /** Per-frame update hook. */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(_delta: number): void {}
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onResize(_designWidth: number, _designHeight: number): void {}
 }
 
