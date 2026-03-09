@@ -12,6 +12,7 @@ const MENU_TITLE_FONT_SIZE = 42;
 const MENU_TITLE_VERTICAL_OFFSET = 160;
 const MENU_RESOLUTION_FONT_SIZE = 18;
 const MENU_RESOLUTION_PADDING = 24;
+const MENU_RESOLUTION_COLOR = 0x7f8499;
 const MENU_BUTTON_LABELS = ['Ace of Shadows', 'Magic Words', 'Phoenix Flame'] as const;
 const MENU_BUTTON_VERTICAL_OFFSET = 40;
 const MENU_BUTTON_VERTICAL_SPACING = 70;
@@ -79,7 +80,7 @@ export class MenuScene extends Scene {
     const resolutionLabel = new Text({
       text: `${width} x ${height}`,
       style: {
-        fill: 0x7f8499,
+        fill: MENU_RESOLUTION_COLOR,
         fontSize: MENU_RESOLUTION_FONT_SIZE,
       },
     });
@@ -98,7 +99,9 @@ export class MenuScene extends Scene {
       const buttonY = startY + index * MENU_BUTTON_VERTICAL_SPACING;
       const button = this.createButton(label, centerX, buttonY, () => {
         if (label === 'Ace of Shadows') {
-          this.appManager.changeScene(new AceOfShadowsScene(this.app));
+          this.appManager.changeScene(
+            new AceOfShadowsScene(this.app, this.appManager),
+          );
         } else if (label === 'Magic Words') {
           this.appManager.changeScene(new MagicWordsScene(this.app));
         } else {

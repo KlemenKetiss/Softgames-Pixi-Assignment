@@ -1,0 +1,26 @@
+{
+  "bundles": [
+    {
+      "name": "ui-bundle",
+      "assets": [
+        {
+          "alias": "ace-clubs",
+          "src": "./cards/AceClubs.webp"
+        },
+        {
+          "alias": "ace-diamonds",
+          "src": "./cards/AceDiamonds.webp"
+        },
+        {
+          "alias": "ace-hearts",
+          "src": "./cards/AceHearts.webp"
+        },
+        {
+          "alias": "ace-spades",
+          "src": "./cards/AceSpades.webp"
+        }
+      ]
+    }
+  ]
+}
+
