@@ -139,10 +139,14 @@ export class AppManager {
   }
 
   private initResizeHandlers(): void {
-    const handleResize = () => this.onResize();
+    const handleResize = () => {
+      // Defer resize until after Pixi's own resize handling runs.
+      window.requestAnimationFrame(() => this.onResize());
+    };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
+    document.addEventListener('fullscreenchange', handleResize);
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         handleResize();
@@ -151,21 +155,15 @@ export class AppManager {
   }
 
   private initFullscreenOnce(): void {
-    const requestFullscreenOnce = () => {
-      const canvas = this.app.canvas as HTMLCanvasElement;
+    const canvas = this.app.canvas as HTMLCanvasElement;
+
+    const requestFullscreen = () => {
       if (!document.fullscreenElement && canvas.requestFullscreen) {
-        canvas
-          .requestFullscreen()
-          .catch(() => {})
-          .finally(() => {
-            canvas.removeEventListener('pointerdown', requestFullscreenOnce);
-          });
-      } else {
-        canvas.removeEventListener('pointerdown', requestFullscreenOnce);
+        canvas.requestFullscreen().catch(() => {});
       }
     };
 
-    this.app.canvas.addEventListener('pointerdown', requestFullscreenOnce);
+    canvas.addEventListener('pointerdown', requestFullscreen);
   }
 
   private initTicker(): void {
