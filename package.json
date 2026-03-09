@@ -1,0 +1,18 @@
+{
+  "name": "softgames-pixi-assignment",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "pixi.js": "^8.6.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "vite": "^7.3.1"
+  }
+}
+
