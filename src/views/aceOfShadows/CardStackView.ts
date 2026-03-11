@@ -1,4 +1,5 @@
-import { Assets, Container, Sprite, Text } from 'pixi.js';
+import { Container, Sprite, Text } from 'pixi.js';
+import { cardPool } from './CardPool';
 
 export type CardSprite = Sprite;
 
@@ -14,35 +15,48 @@ export interface CardStackViewConfig {
 
 export class CardStackView extends Container {
   readonly cards: CardSprite[] = [];
-  readonly countLabel: Text;
+  protected countLabel!: Text;
 
   constructor(private readonly config: CardStackViewConfig) {
     super();
 
-    for (let i = 0; i < config.cardsPerStack; i += 1) {
+    this.resetCards();
+    this.createLabel();
+  }
+
+  createLabel(): void {
+    this.countLabel = new Text({
+      text: String(this.cards.length),
+      style: {
+        fill: this.config.labelFillColor,
+        fontSize: this.config.labelFontSize,
+        fontWeight: 'bold',
+      },
+    });
+    
+    this.countLabel.anchor.set(0.5, 1);
+    this.addChild(this.countLabel);
+  }
+
+  resetCards(): void {
+    // Return existing cards to the pool
+    this.cards.forEach((card) => {
+      cardPool.release(card);
+    });
+    this.cards.length = 0;
+
+    // Repopulate with new/randomized cards
+    for (let i = 0; i < this.config.cardsPerStack; i += 1) {
       const alias =
-        config.cardAliases[
-          Math.floor(Math.random() * config.cardAliases.length)
+        this.config.cardAliases[
+          Math.floor(Math.random() * this.config.cardAliases.length)
         ];
-      const texture = Assets.get(alias);
-      const card = new Sprite(texture);
-      card.anchor.set(0.5);
-      card.scale.set(config.cardScale);
+      const card = cardPool.acquire(alias, this.config.cardScale);
 
       this.addChild(card);
       this.cards.push(card);
     }
 
-    this.countLabel = new Text({
-      text: String(this.cards.length),
-      style: {
-        fill: config.labelFillColor,
-        fontSize: config.labelFontSize,
-        fontWeight: 'bold',
-      },
-    });
-    this.countLabel.anchor.set(0.5, 1);
-    this.addChild(this.countLabel);
   }
 
   layout(centerX: number, baselineY: number): void {

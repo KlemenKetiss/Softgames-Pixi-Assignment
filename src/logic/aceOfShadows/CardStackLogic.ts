@@ -6,6 +6,8 @@ export interface CardStackState {
 export class CardStackLogic {
   private readonly stacks: CardStackState[];
 
+   private lastTargetIndex: number | null = null;
+
   constructor(stackCount: number, initialCardsPerStack: number) {
     this.stacks = Array.from({ length: stackCount }, (_, index) => ({
       index,
@@ -38,7 +40,17 @@ export class CardStackLogic {
       return null;
     }
 
-    const nonEmptySourceIndices = this.getNonEmptyStackIndices();
+    let nonEmptySourceIndices = this.getNonEmptyStackIndices();
+
+    if (nonEmptySourceIndices.length === 0) {
+      return null;
+    }
+
+    if (this.lastTargetIndex !== null && nonEmptySourceIndices.length > 1) {
+      nonEmptySourceIndices = nonEmptySourceIndices.filter(
+        (index) => index !== this.lastTargetIndex,
+      );
+    }
 
     if (nonEmptySourceIndices.length === 0) {
       return null;
@@ -71,6 +83,7 @@ export class CardStackLogic {
 
     source.cardCount -= 1;
     target.cardCount += 1;
+    this.lastTargetIndex = targetIndex;
   }
 }
 

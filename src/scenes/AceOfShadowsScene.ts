@@ -3,10 +3,8 @@ import { gsap } from 'gsap';
 import { Scene } from '../core/Scene';
 import type { AppManager } from '../core/AppManager';
 import { CardStackLogic } from '../logic/aceOfShadows/CardStackLogic';
-import {
-  CardSprite,
-  CardStackView,
-} from '../views/aceOfShadows/CardStackView';
+import { CardSprite, CardStackView } from '../views/aceOfShadows/CardStackView';
+import { cardPool } from '../views/aceOfShadows/CardPool';
 
 const STACK_COUNT: number = 4;
 const CARDS_PER_STACK: number = 36;
@@ -34,21 +32,32 @@ const CARD_ALIASES: string[] = [
   'ace-spades',
 ];
 
+const SHARED_STACKS: CardStackView[] = [];
+
 export class AceOfShadowsScene extends Scene {
   private readonly logic: CardStackLogic;
   private readonly stacks: CardStackView[] = [];
 
   private isAnimating = false;
 
+  private cardAnimationTimeout: number | null = null;
+
+  private isDisposed = false;
+
   constructor(app: Application, private readonly appManager: AppManager) {
     super(app);
 
     this.logic = new CardStackLogic(STACK_COUNT, CARDS_PER_STACK);
     this.root.sortableChildren = true;
+    this.isDisposed = false;
     this.createStacks();
     this.layoutStacks();
     this.animateRandomTopCardMove();
     this.onResize();
+  }
+
+  override exit(): void {
+    this.cleanup();
   }
 
   override onResize(): void {
@@ -67,22 +76,31 @@ export class AceOfShadowsScene extends Scene {
   }
 
   private createStacks(): void {
-    for (let i = 0; i < STACK_COUNT; i += 1) {
-      const stackView = new CardStackView({
-        cardsPerStack: CARDS_PER_STACK,
-        cardScale: CARD_SCALE,
-        cardYOffset: CARD_Y_OFFSET,
-        labelFontSize: LABEL_FONT_SIZE,
-        labelFillColor: LABEL_FILL_COLOR,
-        labelVerticalOffset: LABEL_VERTICAL_OFFSET,
-        cardAliases: CARD_ALIASES,
-      });
+    // Lazily create shared stack views once; reuse across scene instances.
+    if (SHARED_STACKS.length === 0) {
+      for (let i = 0; i < STACK_COUNT; i += 1) {
+        const stackView = new CardStackView({
+          cardsPerStack: CARDS_PER_STACK,
+          cardScale: CARD_SCALE,
+          cardYOffset: CARD_Y_OFFSET,
+          labelFontSize: LABEL_FONT_SIZE,
+          labelFillColor: LABEL_FILL_COLOR,
+          labelVerticalOffset: LABEL_VERTICAL_OFFSET,
+          cardAliases: CARD_ALIASES,
+        });
 
-      stackView.zIndex = i;
+        stackView.zIndex = i;
+        SHARED_STACKS.push(stackView);
+      }
+    }
 
+    this.stacks.length = 0;
+    SHARED_STACKS.forEach((stackView, index) => {
+      stackView.zIndex = index;
+      stackView.resetCards();
       this.stacks.push(stackView);
       this.root.addChild(stackView);
-    }
+    });
   }
 
   private layoutStacks(): void {
@@ -99,6 +117,7 @@ export class AceOfShadowsScene extends Scene {
 
   private animateRandomTopCardMove(): void {
     if (this.isAnimating) return;
+    if (this.isDisposed) return;
     if (this.stacks.length < 2) return;
 
     const move = this.logic.chooseRandomMove();
@@ -137,11 +156,14 @@ export class AceOfShadowsScene extends Scene {
       duration: CARD_MOVE_DURATION_SECONDS,
       ease: 'power2.inOut',
       onComplete: () => {
+        if (this.isDisposed) {
+          return;
+        }
         targetStackView.addChild(movingCard);
         this.bringCardToFront(movingCard);
         this.updateStackLabelForIndex(targetIndex);
         this.isAnimating = false;
-        setTimeout(() => {
+        this.cardAnimationTimeout = window.setTimeout(() => {
           this.animateRandomTopCardMove();
         }, CARD_MOVE_RESTART_DELAY_MS);
       },
@@ -203,6 +225,28 @@ export class AceOfShadowsScene extends Scene {
 
     const cardCount = this.logic.getCardCount(stackIndex);
     stackView.updateLabel(cardCount);
+  }
+
+  private cleanup(): void {
+    this.isDisposed = true;
+    this.isAnimating = false;
+
+    if (this.cardAnimationTimeout !== null) {
+      clearTimeout(this.cardAnimationTimeout);
+      this.cardAnimationTimeout = null;
+    }
+
+    this.stacks.forEach((stackView) => {
+      stackView.cards.forEach((card) => {
+        gsap.killTweensOf(card);
+        cardPool.release(card);
+      });
+
+      stackView.cards.length = 0;
+      stackView.updateLabel(0);
+      stackView.removeFromParent();
+    });
+    this.stacks.length = 0;
   }
 }
 
