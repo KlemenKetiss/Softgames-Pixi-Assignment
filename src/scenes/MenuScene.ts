@@ -103,7 +103,7 @@ export class MenuScene extends Scene {
             new AceOfShadowsScene(this.app, this.appManager),
           );
         } else if (label === 'Magic Words') {
-          this.appManager.changeScene(new MagicWordsScene(this.app));
+          this.appManager.changeScene(new MagicWordsScene(this.app, this.appManager));
         } else {
           this.appManager.changeScene(new PhoenixFlameScene(this.app));
         }

@@ -18,6 +18,10 @@
         {
           "alias": "ace-spades",
           "src": "./cards/AceSpades.webp"
+        },
+        {
+          "alias": "magicwords",
+          "src": "./magicWords/magicwords.json"
         }
       ]
     }
