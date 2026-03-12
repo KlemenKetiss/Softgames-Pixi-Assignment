@@ -1,10 +1,10 @@
 # Softgames Pixi Assignment
 
-Pixi.js + TypeScript assignment implementing three mini-scenes:
+Pixi.js + TypeScript assignment implementing three showcase scenes:
 
-- **Ace of Shadows**: card–based puzzle with stacks and card movement rules.
-- **Magic Words**: dialogue system backed by an HTTP API and emoji/text rendering.
-- **Phoenix Flame**: particle-based fire effect using Pixi and GSAP-style timing.
+- **Ace of Shadows**: animated stacks of playing cards that continuously move between piles according to simple rules.
+- **Magic Words**: a scripted conversation between characters, rendered with avatars, dialogue text, and emojis, loaded from local data.
+- **Phoenix Flame**: a configurable fire / particle scene that animates flame sprites and lets you tweak behaviour via code.
 
 ### Setup
 
