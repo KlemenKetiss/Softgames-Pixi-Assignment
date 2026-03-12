@@ -22,6 +22,42 @@
         {
           "alias": "magicwords",
           "src": "./magicWords/magicwords.json"
+        },
+        {
+          "alias": "fire-00001",
+          "src": "./fireSprites/fire_00001.png"
+        },
+        {
+          "alias": "fire-00003",
+          "src": "./fireSprites/fire_00003.png"
+        },
+        {
+          "alias": "fire-00029",
+          "src": "./fireSprites/fire_00029.png"
+        },
+        {
+          "alias": "fire-00005",
+          "src": "./fireSprites/fire_00005.png"
+        },
+        {
+          "alias": "fire-00007",
+          "src": "./fireSprites/fire_00007.png"
+        },
+        {
+          "alias": "fire-00009",
+          "src": "./fireSprites/fire_00009.png"
+        },
+        {
+          "alias": "fire-00011",
+          "src": "./fireSprites/fire_00011.png"
+        },
+        {
+          "alias": "fire-00013",
+          "src": "./fireSprites/fire_00013.png"
+        },
+        {
+          "alias": "fire-light",
+          "src": "./fireSprites/light.png"
         }
       ]
     }

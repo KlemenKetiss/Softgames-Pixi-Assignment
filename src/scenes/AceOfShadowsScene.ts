@@ -9,7 +9,7 @@ import { cardPool } from '../views/aceOfShadows/CardPool';
 const STACK_COUNT: number = 4;
 const CARDS_PER_STACK: number = 36;
 const CARD_SCALE: number = 0.3;
-const CARD_Y_OFFSET: number = 3;
+const CARD_Y_OFFSET: number = 5;
 const STACK_HORIZONTAL_MARGIN_RATIO: number = 0.2;
 
 const LABEL_FONT_SIZE: number = 50;

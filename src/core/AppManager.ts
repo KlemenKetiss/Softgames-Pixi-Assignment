@@ -225,6 +225,10 @@ export class AppManager {
     this.currentScene = next;
     this.currentScene.enter();
     this.sceneRoot.addChild(this.currentScene.root);
+
+    // Ensure the new scene is laid out for the current design size immediately.
+    this.currentScene.onResize(this.designWidth, this.designHeight);
+
     this.updateBackButtonVisibility();
   }
 

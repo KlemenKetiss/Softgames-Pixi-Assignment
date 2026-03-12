@@ -40,13 +40,16 @@ export class MagicWordsLogic {
     return this.data.dialogue[this.currentIndex] ?? null;
   }
 
-  getCurrentLineViewModel():
-    | {
-        speakerName: string;
-        text: string;
-        emojiUrl: string | null;
-      }
-    | null {
+  /**
+   * Returns info about the current dialogue line, including
+   * the speaker's name, the line text with any curly-brace {emoji} code removed,
+   * and the URL for a matching emoji if one is referenced, otherwise null.
+   */
+  getCurrentLineViewModel(): {
+    speakerName: string;
+    text: string;
+    emojiUrl: string | null;
+  } | null {
     const line = this.getCurrentLine();
     if (!line) {
       return null;
