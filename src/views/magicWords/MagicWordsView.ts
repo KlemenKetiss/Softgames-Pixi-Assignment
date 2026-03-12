@@ -1,4 +1,4 @@
-import { Container } from 'pixi.js';
+import { Container, Graphics, Text } from 'pixi.js';
 import { Avatar } from './Avatar';
 import { Dialogue } from './Dialogue';
 import { Emoji } from './Emoji';
@@ -7,6 +7,7 @@ export class MagicWordsView extends Container {
   private readonly avatars: Avatar[] = [];
   private readonly dialogue: Dialogue;
   private readonly emoji: Emoji;
+  private restartButton?: Container;
 
   constructor() {
     super();
@@ -65,6 +66,61 @@ export class MagicWordsView extends Container {
     this.emoji.x = avatar.x;
     this.emoji.y = avatar.y - 140;
     this.emoji.loadFromUrl(emojiUrl);
+  }
+
+  hideAllAvatars(): void {
+    this.avatars.forEach((avatar) => {
+      avatar.visible = false;
+    });
+    this.emoji.visible = false;
+  }
+
+  showRestartButton(onClick: () => void): void {
+    if (!this.restartButton) {
+      const button = new Container();
+
+      const background = new Graphics()
+        .roundRect(-200, -30, 400, 60, 16)
+        .fill({ color: 0x252a3d })
+        .stroke({ color: 0x61dafb, width: 2 });
+
+      const label = new Text({
+        text: 'Restart conversation',
+        style: {
+          fill: 0xffffff,
+          fontSize: 20,
+        },
+      });
+      label.anchor.set(0.5);
+      label.x = 0;
+      label.y = 0;
+
+      button.addChild(background, label);
+
+      button.y = this.dialogue.y + 140;
+
+      button.eventMode = 'static';
+      button.cursor = 'pointer';
+
+      this.restartButton = button;
+      this.addChild(this.restartButton);
+    }
+
+    this.restartButton.visible = true;
+    this.restartButton.removeAllListeners();
+    this.restartButton.on('pointertap', (event) => {
+      // Prevent also triggering the scene's root click handler.
+      if (event && typeof event.stopPropagation === 'function') {
+        event.stopPropagation();
+      }
+      onClick();
+    });
+  }
+
+  hideRestartButton(): void {
+    if (this.restartButton) {
+      this.restartButton.visible = false;
+    }
   }
 
   clearExistingAvatars(): void {

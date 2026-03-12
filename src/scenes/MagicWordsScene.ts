@@ -11,6 +11,7 @@ import {
 export class MagicWordsScene extends Scene {
   private view!: MagicWordsView;
   private logic!: MagicWordsLogic;
+  private isAtEnd = false;
   constructor(app: Application, private readonly appManager: AppManager) {
     super(app);
     this.initialize();
@@ -36,6 +37,8 @@ export class MagicWordsScene extends Scene {
   }
 
   private resetConversation(): void {
+    this.isAtEnd = false;
+    this.view.hideRestartButton();
     this.logic.resetConversation();
     const vm = this.logic.getCurrentLineViewModel();
     if (vm) {
@@ -48,6 +51,15 @@ export class MagicWordsScene extends Scene {
   private advanceConversation(): void {
     const next = this.logic.advance();
     if (!next) {
+      this.isAtEnd = true;
+      this.view.hideAllAvatars();
+      this.view.setDialogueText(
+        'THE END - Tap the button below to restart conversation or Back to return to the menu',
+      );
+      this.view.showEmojiAboveSpeaker(null, '');
+      this.view.showRestartButton(() => {
+        this.resetConversation();
+      });
       return;
     }
 
