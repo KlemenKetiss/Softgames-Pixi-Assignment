@@ -58,49 +58,52 @@ Make sure your repository’s **Settings → Pages** is configured to use **GitH
 
 ### Project structure
 
-Softgames-Pixi-Assignment/
-├─ package.json
-├─ README.md
-├─ tsconfig.json
-├─ vite.config.ts
-├─ public/                 # static assets (images, fonts, etc.)
-│  └─ ... 
-├─ assets/                 # JSON/config/atlas data used by the game
-│  ├─ manifest.json
-│  ├─ backgrounds/
-│  │  ├─ CardsBackground.webp
-│  │  └─ MagicWordsBackground.webp
-│  ├─ cards/
-│  ├─ fireSprites/
-│  └─ magicWords/
-└─ src/
-   ├─ main.ts              # entry point; bootstraps AppManager
-   ├─ core/
-   │  ├─ AppManager.ts     # owns Pixi Application, scene switching
-   │  └─ Scene.ts          # base scene class
-   ├─ scenes/
-   │  ├─ MenuScene.ts         # menu scene that lets you choose between the three tasks
-   │  ├─ AceOfShadowsScene.ts # orchestrates Ace of Shadows card stacks, movement, and layout
-   │  ├─ MagicWordsScene.ts   # runs the Magic Words dialogue flow and input handling
-   │  └─ PhoenixFlameScene.ts # wraps the Phoenix Flame fire effect demo as a scene
-   ├─ logic/
-   │  ├─ aceOfShadows/
-   │  │  └─ CardStackLogic.ts     # pure rules and state transitions for card stacks
-   │  ├─ magicWords/
-   │  │  └─ MagicWordsLogic.ts    # parses script data and exposes dialogue view models
-   │  └─ phoenixFlame/
-   │     ├─ FireLogic.ts          # handles fire particle spawning and lifetime updates
-   │     └─ PhoenixFlameConfig.ts # tunable config values for the flame effect
-   ├─ views/
-   │  ├─ aceOfShadows/
-   │  │  ├─ CardStackView.ts      # Pixi container that renders and animates card stacks
-   │  │  └─ CardPool.ts           # simple object pool for reusing card sprites
-   │  ├─ magicWords/
-   │  │  ├─ MagicWordsView.ts     # Pixi layout for dialogue text, avatars, and emojis
-   │  │  ├─ Avatar.ts             # helper view for a single speaker avatar
-   │  │  ├─ Dialogue.ts           # helper view for the dialogue text bubble
-   │  │  └─ Emoji.ts              # helper view for the floating emoji graphic
-   │  └─ phoenixFlame/
-   │     └─ FireView.ts           # Pixi view responsible for drawing the fire particles
-   └─ services/
-      └─ ApiClient.ts             # small HTTP client used to fetch Magic Words dialogue data
+- **Root**
+  - `package.json`
+  - `README.md`
+  - `tsconfig.json`
+  - `vite.config.ts`
+
+- **public/**
+  - Static assets (images, fonts, etc.).
+
+- **assets/**
+  - `manifest.json`
+  - `backgrounds/`
+    - `CardsBackground.webp`
+    - `MagicWordsBackground.webp`
+  - `cards/`
+  - `fireSprites/`
+  - `magicWords/`
+
+- **src/**
+  - `main.ts`: entry point; bootstraps `AppManager`.
+  - `core/`
+    - `AppManager.ts`: owns Pixi `Application`, handles scene switching.
+    - `Scene.ts`: base scene class.
+  - `scenes/`
+    - `MenuScene.ts`: menu scene that lets you choose between the three tasks.
+    - `AceOfShadowsScene.ts`: orchestrates Ace of Shadows card stacks, movement, and layout.
+    - `MagicWordsScene.ts`: runs the Magic Words dialogue flow and input handling.
+    - `PhoenixFlameScene.ts`: wraps the Phoenix Flame fire effect demo as a scene.
+  - `logic/`
+    - `aceOfShadows/`
+      - `CardStackLogic.ts`: pure rules and state transitions for card stacks.
+    - `magicWords/`
+      - `MagicWordsLogic.ts`: parses script data and exposes dialogue view models.
+    - `phoenixFlame/`
+      - `FireLogic.ts`: handles fire particle spawning and lifetime updates.
+      - `PhoenixFlameConfig.ts`: tunable config values for the flame effect.
+  - `views/`
+    - `aceOfShadows/`
+      - `CardStackView.ts`: Pixi container that renders and animates card stacks.
+      - `CardPool.ts`: simple object pool for reusing card sprites.
+    - `magicWords/`
+      - `MagicWordsView.ts`: Pixi layout for dialogue text, avatars, and emojis.
+      - `Avatar.ts`: helper view for a single speaker avatar.
+      - `Dialogue.ts`: helper view for the dialogue text bubble.
+      - `Emoji.ts`: helper view for the floating emoji graphic.
+    - `phoenixFlame/`
+      - `FireView.ts`: Pixi view responsible for drawing the fire particles.
+  - `services/`
+    - `ApiClient.ts`: small HTTP client used to fetch Magic Words dialogue data.
