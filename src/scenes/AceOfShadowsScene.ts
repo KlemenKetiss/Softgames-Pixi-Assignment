@@ -20,8 +20,8 @@ const PORTRAIT_ROOT_SCALE: number = 0.7;
 const PORTRAIT_ROOT_OFFSET_X: number = -150;
 const PORTRAIT_ROOT_OFFSET_Y: number = 300;
 
-const CARD_MOVE_DURATION_SECONDS: number = 1;
-const CARD_MOVE_RESTART_DELAY_MS: number = 0;
+const CARD_MOVE_DURATION_SECONDS: number = 2;
+const CARD_MOVE_RESTART_DELAY_MS: number = 1000;
 
 const BASELINE_VERTICAL_POSITION_RATIO: number = 1 / 3;
 
