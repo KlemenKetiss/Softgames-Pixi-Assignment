@@ -8,7 +8,7 @@ import { cardPool } from '../views/aceOfShadows/CardPool';
 
 const STACK_COUNT: number = 4;
 const CARDS_PER_STACK: number = 36;
-const CARD_SCALE: number = 0.3;
+const CARD_SCALE: number = 0.25;
 const CARD_Y_OFFSET: number = 5;
 const STACK_HORIZONTAL_MARGIN_RATIO: number = 0.2;
 
@@ -71,7 +71,7 @@ export class AceOfShadowsScene extends Scene {
     } else {
       this.root.scale.set(1);
       this.root.x = 0;
-      this.root.y = 0;
+      this.root.y = 50; //Y offset to better align the scene in the screen
     } 
   }
 
