@@ -27,6 +27,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Copy runtime assets into dist
+        run: |
+          mkdir -p dist/assets
+          cp -r assets/* dist/assets/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
