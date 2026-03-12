@@ -1,4 +1,4 @@
-import type { Application, Sprite } from 'pixi.js';
+import { Application, Assets, Sprite } from 'pixi.js';
 import { gsap } from 'gsap';
 import { Scene } from '../core/Scene';
 import type { AppManager } from '../core/AppManager';
@@ -11,6 +11,16 @@ const CARDS_PER_STACK: number = 36;
 const CARD_SCALE: number = 0.25;
 const CARD_Y_OFFSET: number = 3;
 const STACK_HORIZONTAL_MARGIN_RATIO: number = 0.2;
+
+const BACKGROUND_DEFAULT_WIDTH: number = 1920;
+const BACKGROUND_DEFAULT_HEIGHT: number = 1400;
+
+const ANIMATION_VIEWPORT_WIDTH: number = 1920;
+const ANIMATION_VIEWPORT_HEIGHT: number = 1080;
+
+const BACKGROUND_PORTRAIT_X: number = 970;
+const BACKGROUND_PORTRAIT_Y: number = 550;
+const BACKGROUND_LANDSCAPE_Y_OFFSET: number = 100;
 
 const LABEL_FONT_SIZE: number = 50;
 const LABEL_FILL_COLOR: number = 0xffffff;
@@ -35,9 +45,11 @@ const CARD_ALIASES: string[] = [
 const SHARED_STACKS: CardStackView[] = [];
 
 export class AceOfShadowsScene extends Scene {
-  private readonly logic: CardStackLogic;
   private readonly stacks: CardStackView[] = [];
 
+  private logic!: CardStackLogic;
+  private background!: Sprite;
+  
   private isAnimating = false;
 
   private cardAnimationTimeout: number | null = null;
@@ -47,13 +59,28 @@ export class AceOfShadowsScene extends Scene {
   constructor(app: Application, private readonly appManager: AppManager) {
     super(app);
 
-    this.logic = new CardStackLogic(STACK_COUNT, CARDS_PER_STACK);
-    this.root.sortableChildren = true;
-    this.isDisposed = false;
+    this.initializeBackground();
+    this.initializeLogic();
     this.createStacks();
     this.layoutStacks();
     this.animateRandomTopCardMove();
     this.onResize();
+  }
+
+  private initializeLogic(): void {
+    this.logic = new CardStackLogic(STACK_COUNT, CARDS_PER_STACK);
+    this.root.sortableChildren = true;
+    this.isDisposed = false;
+  }
+
+  protected initializeBackground(): void {
+    const backgroundTexture = Assets.get('cards-background');
+    this.background = new Sprite(backgroundTexture);
+    this.background.anchor.set(0.5);
+    this.background.zIndex = -1;
+    this.background.width = BACKGROUND_DEFAULT_WIDTH;
+    this.background.height = BACKGROUND_DEFAULT_HEIGHT;
+    this.root.addChild(this.background);
   }
 
   override exit(): void {
@@ -62,13 +89,16 @@ export class AceOfShadowsScene extends Scene {
 
   override onResize(): void {
     const { width, height } = this.appManager.getDesignSize();
-
     // Scale down the entire scene in portrait, reset in landscape.
     if (height > width) {
       this.root.scale.set(PORTRAIT_ROOT_SCALE);
       this.root.x = PORTRAIT_ROOT_OFFSET_X;
       this.root.y = PORTRAIT_ROOT_OFFSET_Y;
+      this.background.x = BACKGROUND_PORTRAIT_X;
+      this.background.y = BACKGROUND_PORTRAIT_Y;
     } else {
+      this.background.x = width / 2;
+      this.background.y = height / 2 - BACKGROUND_LANDSCAPE_Y_OFFSET;
       this.root.scale.set(1);
       this.root.x = 0;
       this.root.y = 150; //Y offset to better align the scene in the screen
@@ -104,7 +134,10 @@ export class AceOfShadowsScene extends Scene {
   }
 
   private layoutStacks(): void {
-    const { width, height } = { width: 1920, height: 1080 }; //Keeping it same size just scaling down the scene for portrait
+    const { width, height } = {
+      width: ANIMATION_VIEWPORT_WIDTH,
+      height: ANIMATION_VIEWPORT_HEIGHT,
+    }; //Keeping it same size just scaling down the scene for portrait
     const baselineY = this.getBaselineY(height);
 
     this.stacks.forEach((stackView, stackIndex) => {
@@ -142,7 +175,10 @@ export class AceOfShadowsScene extends Scene {
 
     this.isAnimating = true;
 
-    const { width, height } = { width: 1920, height: 1080 }; //Keeping it same size just scaling down the scene for portrait
+    const { width, height } = {
+      width: ANIMATION_VIEWPORT_WIDTH,
+      height: ANIMATION_VIEWPORT_HEIGHT,
+    }; //Keeping it same size just scaling down the scene for portrait
     const targetX = this.getStackCenterX(targetIndex, width);
     const targetY = this.getNextCardYForStack(targetStackView, height);
 

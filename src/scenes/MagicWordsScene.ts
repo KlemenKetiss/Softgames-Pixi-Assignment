@@ -1,5 +1,4 @@
-import type { Application } from 'pixi.js';
-import { Assets } from 'pixi.js';
+import { Application, Assets, Sprite } from 'pixi.js';
 import { Scene } from '../core/Scene';
 import type { AppManager } from '../core/AppManager';
 import { MagicWordsView } from '../views/magicWords/MagicWordsView';
@@ -8,14 +7,33 @@ import {
   type MagicWordsData,
 } from '../logic/magicWords/MagicWordsLogic';
 
+const MAGIC_WORDS_VIEW_VERTICAL_OFFSET: number = 100;
+const MAGIC_WORDS_BACKGROUND_WIDTH: number = 1920;
+const MAGIC_WORDS_BACKGROUND_HEIGHT: number = 1080;
+
 export class MagicWordsScene extends Scene {
   private view!: MagicWordsView;
   private logic!: MagicWordsLogic;
   private isAtEnd = false;
+  private background!: Sprite;
   constructor(app: Application, private readonly appManager: AppManager) {
     super(app);
+    this.initializeBackground();
     this.initialize();
     this.onResize();
+  }
+
+  private initializeBackground(): void {
+    const backgroundTexture = Assets.get('magicwords-background');
+    const { width, height } = this.appManager.getDesignSize();
+    this.background = new Sprite(backgroundTexture);
+    this.background.anchor.set(0.5);
+    this.background.zIndex = -1;
+    this.root.addChild(this.background);
+    this.background.width = MAGIC_WORDS_BACKGROUND_WIDTH;
+    this.background.height = MAGIC_WORDS_BACKGROUND_HEIGHT;
+    this.background.x = width / 2;
+    this.background.y = height / 2;
   }
 
   protected initialize(): void {
@@ -77,7 +95,9 @@ export class MagicWordsScene extends Scene {
     const { width, height } = this.appManager.getDesignSize();
     if (this.view) {
       this.view.x = width / 2;
-      this.view.y = height / 2 + 100;
+      this.view.y = height / 2 + MAGIC_WORDS_VIEW_VERTICAL_OFFSET;
     }
+    this.background.x = width / 2;
+    this.background.y = height / 2;
   }
 }

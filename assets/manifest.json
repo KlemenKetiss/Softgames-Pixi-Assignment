@@ -20,8 +20,16 @@
           "src": "./cards/AceSpades.webp"
         },
         {
+          "alias": "cards-background",
+          "src": "./backgrounds/CardsBackground.webp"
+        },
+        {
           "alias": "magicwords",
           "src": "./magicWords/magicwords.json"
+        },
+        {
+          "alias": "magicwords-background",
+          "src": "./backgrounds/MagicWordsBackground.webp"
         },
         {
           "alias": "fire-00001",
